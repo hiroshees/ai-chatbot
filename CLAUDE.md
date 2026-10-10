@@ -18,7 +18,7 @@
 - **フレームワーク**: Next.js (App Router)。APIは Route Handler のみで実装する（Hono は使わない）
 - **ORM**: Prisma.js
 - **AIエージェント**: Mastra
-- **AIモデル**: Claude Sonnet 5.5 (`claude-sonnet-5-5`, Anthropic)
+- **AIモデル**: Gemini 3.6 Flash (`gemini-3.6-flash`, Google)
 - **データベース**: MongoDB Atlas（無料枠）
 
 ### インフラストラクチャ
@@ -32,7 +32,7 @@
 ## 機能要件
 ### 必須機能
 1. **AI対話機能**
-　 - Claude Sonnet 5.5を使用した自然な対話
+　 - Gemini 3.6 Flashを使用した自然な対話
 　 - リアルタイムレスポンス
 　 - エラーハンドリング
 
@@ -65,7 +65,6 @@
 - **テーマ**: エンタメライク
 - ダークモードとライトモードの切り替え機能
 - **レスポンシブ**: PC/タブレット/スマートフォン対応
-- @anthropic-ai/sdk
 - tailwindcss
 - typescript
 
@@ -106,7 +105,7 @@ tests/              # Vitest テスト
 
 `.env.local` に設定する。**コミット禁止**。`.env.example` にキー名のみ記載する。
 
-- `ANTHROPIC_API_KEY`: Claude APIキー
+- `GOOGLE_API_KEY`: Google AI（Gemini）APIキー
 - `MONGODB_URI`: MongoDB Atlas 接続文字列
 
 ## コマンド

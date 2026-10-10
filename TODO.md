@@ -4,7 +4,7 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 ## 着手前に決めること（要確認）
 
-- [x] **AIモデル**: `claude-sonnet-5-5`（Sonnet 5.5）に決定。CLAUDE.md 更新済み
+- [x] **AIモデル**: `gemini-3.6-flash`（Google Gemini 3.6 Flash）に変更。CLAUDE.md 更新済み
 - [x] **履歴の保存先**: MongoDB Atlas（Prisma 経由）に決定。匿名セッションIDをセッションCookieで発行して履歴を紐付け、ブラウザを閉じたら到達不能にする（CLAUDE.md 更新済み）
 - [x] **履歴の削除**: 行わない（TTL・定期ジョブなし）に決定（CLAUDE.md 更新済み）
 - [x] **Atlas 無料枠（512MB）の容量**: いっぱいになったら警告するだけにする（自動削除・自動対処なし）。CLAUDE.md 更新済み
@@ -26,18 +26,18 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 - [x] Vitest 導入（`pnpm test` スクリプト、サンプルテスト）
 - [x] `.env.example` 作成、`.gitignore` に `.env*.local` を含める
 - [x] ディレクトリ作成（`src/mastra`、`src/lib`、`src/components`、`tests`）
-- [ ] 初期コミット（依頼があれば）
+- [x] 初期コミット（依頼があれば）
 
 **検証**: `pnpm dev` / `pnpm build` / `pnpm lint` / `pnpm test` / 型チェックが通る
 
 ## Phase 1: AIエージェント（バックエンド中核）
 
-- [ ] Mastra / Anthropic 関連パッケージの最新ドキュメント確認（context7）
-- [ ] 依存追加（確認の上）: `@mastra/core`、AnthropicのSDKまたはプロバイダ
-- [ ] `src/mastra/` に Agent 定義（instructions にツンデレな女の子・口語調のペルソナ。例外時はツンを控える指示も含める）
-- [ ] 動作確認: 通常の質問・エラー説明・落ち込んだ相談の3パターンで口調と親切さを確認する
-- [ ] 環境変数 `ANTHROPIC_API_KEY` の読み込み
-- [ ] Agent 単体の動作確認用スクリプト（実API、手動実行）。Mastra Memory は設定せず、メッセージ配列を渡して応答させる
+- [x] Mastra / Google 関連パッケージの最新ドキュメント確認（context7）
+- [x] 依存追加（確認の上）: `@mastra/core`、モデルルーターのため追加プロバイダ不要
+- [x] `src/mastra/` に Agent 定義（instructions にツンデレな女の子・口語調のペルソナ。例外時はツンを控える指示も含める）
+- [x] 動作確認: 通常の質問・エラー説明・落ち込んだ相談の3パターンで口調と親切さを確認する（2026-10-10 実API確認済み）
+- [x] 環境変数 `GOOGLE_API_KEY` の読み込み
+- [x] Agent 単体の動作確認用スクリプト（実API、手動実行）。Mastra Memory は設定せず、メッセージ配列を渡して応答させる
 
 **検証**: スクリプトからAgentに話しかけ、応答が返る
 
@@ -45,7 +45,7 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 - [ ] Node.js runtime でストリーミング応答する `POST /api/chat`（Route Handler）
 - [ ] リクエスト検証（メッセージ配列の形式、サイズ上限）
-- [ ] エラーハンドリング（APIキー不正、レート制限、タイムアウト、Anthropic障害）をユーザー向けメッセージに変換
+- [ ] エラーハンドリング（APIキー不正、レート制限、タイムアウト、Gemini（Google）障害）をユーザー向けメッセージに変換
 - [ ] ログにシークレットや会話本文を出さない
 - [ ] Vitest: リクエスト検証・エラー変換のテスト（LLM呼び出しはモック）
 
@@ -104,7 +104,7 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 - [ ] マルチステージ `Dockerfile` と `.dockerignore` 作成
 - [ ] ローカルで `docker build` / `docker run` による動作確認
 - [ ] Google Cloud プロジェクト作成、Cloud Run / Cloud Build / Artifact Registry の有効化
-- [ ] Secret Manager に `ANTHROPIC_API_KEY` と `MONGODB_URI` を登録し、Cloud Run に注入
+- [ ] Secret Manager に `GOOGLE_API_KEY` と `MONGODB_URI` を登録し、Cloud Run に注入
 - [ ] Cloud Build でイメージをビルドし、Cloud Run にデプロイ
 - [ ] Cloud Run の設定（リクエストタイムアウト、最大インスタンス数、同時実行数）
 - [ ] MongoDB Atlas のネットワークアクセス許可を設定（Cloud Run の送信元IPは固定でないため、方式を検討）
