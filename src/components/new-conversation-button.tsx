@@ -25,7 +25,7 @@ export function NewConversationButton({ onStarted }: Props) {
       type="button"
       onClick={start}
       disabled={busy}
-      className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5 disabled:opacity-50 dark:border-white/20 dark:hover:bg-white/10"
+      className="rounded-full border border-line px-3 py-2 text-sm font-medium transition hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 sm:px-4"
     >
       新しい会話
     </button>

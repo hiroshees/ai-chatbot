@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { MarkdownContent } from "./markdown-content.tsx";
+import { ThemeToggle } from "./theme-toggle.tsx";
 import { NewConversationButton } from "./new-conversation-button.tsx";
 import { StorageFullModal } from "./storage-full-modal.tsx";
 import { useChat } from "./use-chat.ts";
@@ -56,15 +57,20 @@ export function ChatView() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-3xl flex-col">
-      <header className="flex items-center justify-between gap-3 border-b border-black/10 px-4 py-3 dark:border-white/15">
-        <h1 className="text-lg font-bold">なおかとおしゃべり</h1>
-        <NewConversationButton
-          onStarted={() => {
-            chat.reset();
-            warning.reset();
-            setInput("");
-          }}
-        />
+      <header className="flex items-center justify-between gap-2 border-b border-line bg-surface/70 px-4 py-3 backdrop-blur">
+        <h1 className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-lg font-extrabold text-transparent sm:text-xl">
+          なおかとおしゃべり
+        </h1>
+        <div className="flex items-center gap-2">
+          <NewConversationButton
+            onStarted={() => {
+              chat.reset();
+              warning.reset();
+              setInput("");
+            }}
+          />
+          <ThemeToggle />
+        </div>
       </header>
 
       <div
@@ -76,18 +82,19 @@ export function ChatView() {
         className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
       >
         {chat.status === "loading" ? (
-          <p className="pt-10 text-center text-sm text-zinc-500">読み込み中…</p>
+          <p className="pt-10 text-center text-sm text-muted">読み込み中…</p>
         ) : chat.messages.length === 0 ? (
           <div className="flex flex-col items-center gap-5 pt-10 text-center">
-            <p className="text-lg font-semibold">べ、別に話しかけてほしかったわけじゃないんだからね！</p>
-            <p className="text-sm text-zinc-500">なおかに何か話しかけてみて。</p>
+            <p className="animate-float text-3xl" aria-hidden="true">💢</p>
+            <p className="text-lg font-bold sm:text-xl">べ、別に話しかけてほしかったわけじゃないんだからね！</p>
+            <p className="text-sm text-muted">なおかに何か話しかけてみて。</p>
             <div className="flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => submit(s)}
-                  className="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-line bg-surface px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   {s}
                 </button>
@@ -97,12 +104,12 @@ export function ChatView() {
         ) : (
           chat.messages.map((m) =>
             m.role === "assistant" && m.content === "" ? null : (
-              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} className={`flex animate-pop-in ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2 text-[15px] leading-7 ${
+                  className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4 py-2 text-[15px] leading-7 ${
                     m.role === "user"
-                      ? "whitespace-pre-wrap break-words bg-pink-600 text-white"
-                      : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
+                      ? "whitespace-pre-wrap break-words bg-gradient-to-br from-accent to-accent-2 text-white shadow-md"
+                      : "border border-line bg-surface shadow-sm"
                   }`}
                 >
                   {m.role === "user" ? m.content : <MarkdownContent>{m.content}</MarkdownContent>}
@@ -114,11 +121,11 @@ export function ChatView() {
 
         {waiting && (
           <div className="flex justify-start" aria-label="なおかが入力中">
-            <div className="flex gap-1 rounded-2xl bg-zinc-100 px-4 py-3 dark:bg-zinc-800">
+            <div className="flex gap-1 rounded-2xl border border-line bg-surface px-4 py-3">
               {[0, 150, 300].map((delay) => (
                 <span
                   key={delay}
-                  className="size-2 animate-bounce rounded-full bg-zinc-400"
+                  className="size-2 animate-bounce rounded-full bg-muted"
                   style={{ animationDelay: `${delay}ms` }}
                 />
               ))}
@@ -150,7 +157,7 @@ export function ChatView() {
           e.preventDefault();
           submit(input);
         }}
-        className="flex items-end gap-2 border-t border-black/10 px-4 py-3 dark:border-white/15"
+        className="flex items-end gap-2 border-t border-line bg-surface/70 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
       >
         {/* Grammarly 等の拡張機能が属性を付与するため警告を抑制する */}
         <textarea
@@ -162,21 +169,22 @@ export function ChatView() {
           maxLength={4000}
           placeholder="メッセージを入力（Enterで送信 / Shift+Enterで改行）"
           aria-label="メッセージ"
-          className="max-h-40 min-h-11 flex-1 resize-none rounded-2xl border border-black/15 bg-transparent px-4 py-2.5 text-base [field-sizing:content] focus:outline-2 focus:outline-pink-500 dark:border-white/25"
+          className="max-h-40 min-h-11 flex-1 resize-none rounded-2xl border border-line bg-surface px-4 py-2.5 text-base [field-sizing:content] placeholder:text-muted focus:outline-2 focus:outline-accent"
         />
         {streaming ? (
           <button
             type="button"
             onClick={chat.stop}
-            className="h-11 shrink-0 rounded-full bg-zinc-700 px-5 text-sm font-medium text-white hover:bg-zinc-600"
+            className="h-11 shrink-0 rounded-full bg-surface-muted px-5 text-sm font-medium transition hover:bg-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             停止
           </button>
         ) : (
           <button
             type="submit"
+            aria-label="送信"
             disabled={input.trim() === "" || chat.status === "loading"}
-            className="h-11 shrink-0 rounded-full bg-pink-600 px-5 text-sm font-medium text-white hover:bg-pink-500 disabled:opacity-40"
+            className="h-11 shrink-0 rounded-full bg-gradient-to-r from-accent to-accent-2 px-5 text-sm font-bold text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
           >
             送信
           </button>
