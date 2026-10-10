@@ -152,7 +152,9 @@ export function ChatView() {
         }}
         className="flex items-end gap-2 border-t border-black/10 px-4 py-3 dark:border-white/15"
       >
+        {/* Grammarly 等の拡張機能が属性を付与するため警告を抑制する */}
         <textarea
+          suppressHydrationWarning
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
