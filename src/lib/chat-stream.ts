@@ -1,8 +1,10 @@
 import { classifyChatError } from "./chat-errors.ts";
+import type { SaveOutcome } from "./history.ts";
 
 // レスポンスは NDJSON（1行1イベント）で返す
 export type ChatStreamEvent =
   | { type: "text"; text: string }
+  | { type: "storage_full" }
   | { type: "done" }
   | { type: "error"; code: string; status: number; message: string };
 
@@ -41,3 +43,19 @@ export async function* toChatEvents(
 
 export const encodeEvent = (event: ChatStreamEvent): Uint8Array =>
   new TextEncoder().encode(`${JSON.stringify(event)}\n`);
+
+// 応答が完了(done)した時点で履歴を保存する。保存の失敗は会話を止めず、
+// 容量超過のときだけ storage_full イベントをクライアントへ通知する
+export async function* withPersistence(
+  events: AsyncIterable<ChatStreamEvent>,
+  save: (assistantText: string) => Promise<SaveOutcome>,
+): AsyncGenerator<ChatStreamEvent> {
+  let text = "";
+  for await (const event of events) {
+    if (event.type === "text") text += event.text;
+    if (event.type === "done" && text !== "") {
+      if ((await save(text)) === "full") yield { type: "storage_full" };
+    }
+    yield event;
+  }
+}

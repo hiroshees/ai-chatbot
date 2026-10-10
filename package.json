@@ -10,10 +10,13 @@
     "typecheck": "next typegen && tsc --noEmit",
     "agent:try": "node --env-file-if-exists=.env.local scripts/try-agent.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "prisma generate",
+    "db:push": "node --env-file=.env.local node_modules/prisma/build/index.js db push"
   },
   "dependencies": {
     "@mastra/core": "^1.75.0",
+    "@prisma/client": "6.19.3",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -25,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "prisma": "6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.3"

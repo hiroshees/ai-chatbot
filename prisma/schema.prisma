@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+// 匿名セッション。token は Cookie に入れるランダムID（推測困難）
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  createdAt DateTime @default(now())
+}
+
+// sessionId には Session.token を入れる（MongoDB では参照整合性を持たせず、保存の軽さを優先する）
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+  @@index([createdAt])
+}

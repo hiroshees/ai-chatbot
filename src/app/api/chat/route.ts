@@ -1,7 +1,15 @@
 import { naokaAgent } from "@/mastra/naoka-agent.ts";
 import { badRequestInfo, classifyChatError } from "@/lib/chat-errors.ts";
 import { validateChatRequest } from "@/lib/chat-request.ts";
-import { encodeEvent, toChatEvents, type ChatStreamEvent } from "@/lib/chat-stream.ts";
+import {
+  encodeEvent,
+  toChatEvents,
+  withPersistence,
+  type ChatStreamEvent,
+} from "@/lib/chat-stream.ts";
+import { saveExchangeSafely } from "@/lib/history.ts";
+import { prismaHistoryStore } from "@/lib/history-store.ts";
+import { resolveSession } from "@/lib/session.ts";
 
 // runtime / dynamic は cacheComponents と併用できないため指定しない（既定の Node.js runtime・動的実行）
 
@@ -29,6 +37,9 @@ export async function POST(request: Request) {
     return errorResponse(badRequestInfo(validated.message));
   }
 
+  const session = resolveSession(request);
+  const userMessage = validated.messages[validated.messages.length - 1].content;
+
   const signal = AbortSignal.any([
     request.signal,
     AbortSignal.timeout(TIMEOUT_MS),
@@ -39,7 +50,9 @@ export async function POST(request: Request) {
     const output = await naokaAgent.stream(validated.messages, {
       abortSignal: signal,
     });
-    events = toChatEvents(output.fullStream, signal);
+    events = withPersistence(toChatEvents(output.fullStream, signal), (assistantText) =>
+      saveExchangeSafely(prismaHistoryStore, session.sessionId, userMessage, assistantText),
+    );
   } catch (error) {
     return errorResponse(classifyChatError(error));
   }
@@ -69,11 +82,11 @@ export async function POST(request: Request) {
     },
   });
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "application/x-ndjson; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      "X-Accel-Buffering": "no",
-    },
+  const headers = new Headers({
+    "Content-Type": "application/x-ndjson; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
   });
+  if (session.setCookie) headers.append("Set-Cookie", session.setCookie);
+  return new Response(stream, { headers });
 }
