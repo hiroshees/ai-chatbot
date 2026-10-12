@@ -1,5 +1,9 @@
 import { naokaAgent } from "@/mastra/naoka-agent.ts";
-import { badRequestInfo, classifyChatError } from "@/lib/chat-errors.ts";
+import {
+  badRequestInfo,
+  classifyChatError,
+  tooManyRequestsInfo,
+} from "@/lib/chat-errors.ts";
 import { validateChatRequest } from "@/lib/chat-request.ts";
 import {
   encodeEvent,
@@ -9,11 +13,23 @@ import {
 } from "@/lib/chat-stream.ts";
 import { saveExchangeSafely } from "@/lib/history.ts";
 import { prismaHistoryStore } from "@/lib/history-store.ts";
+import {
+  checkChatRate,
+  clientIp,
+  IP_RULE,
+  RateLimiter,
+  SESSION_RULE,
+} from "@/lib/rate-limit.ts";
 import { resolveSession } from "@/lib/session.ts";
 
 // runtime / dynamic は cacheComponents と併用できないため指定しない（既定の Node.js runtime・動的実行）
 
 const TIMEOUT_MS = 60_000;
+
+const limiters = {
+  session: new RateLimiter(SESSION_RULE),
+  ip: new RateLimiter(IP_RULE),
+};
 
 // 秘密情報や会話本文を含みうるため、エラー内容はログに出さず種別だけ記録する
 function errorResponse(info: { code: string; status: number; message: string }) {
@@ -38,6 +54,15 @@ export async function POST(request: Request) {
   }
 
   const session = resolveSession(request);
+  const rate = checkChatRate(limiters, session.sessionId, clientIp(request));
+  if (!rate.ok) {
+    const info = tooManyRequestsInfo(rate.retryAfterSec);
+    console.error(`[api/chat] code=${info.code} status=${info.status} (limited)`);
+    return Response.json(
+      { error: { code: info.code, message: info.message } },
+      { status: info.status, headers: { "Retry-After": String(rate.retryAfterSec) } },
+    );
+  }
   const userMessage = validated.messages[validated.messages.length - 1].content;
 
   const signal = AbortSignal.any([

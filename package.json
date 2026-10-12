@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "load:test": "node scripts/load-test.ts",
     "agent:try": "node --env-file-if-exists=.env.local scripts/try-agent.ts",
     "test": "vitest run",
     "test:watch": "vitest",

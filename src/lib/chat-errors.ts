@@ -91,6 +91,14 @@ export function classifyChatError(error: unknown): ChatErrorInfo {
   return ERRORS.internal;
 }
 
+// 自サーバーのリクエスト頻度制限。Gemini 側の rate_limit と同じ種別で返す
+export function tooManyRequestsInfo(retryAfterSec: number): ChatErrorInfo {
+  return {
+    ...ERRORS.rate_limit,
+    message: `ちょっと送りすぎ！${retryAfterSec}秒くらい待ってからにして。`,
+  };
+}
+
 export function badRequestInfo(message: string): ChatErrorInfo {
   return { code: "bad_request", status: 400, message };
 }
