@@ -103,14 +103,14 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 - [x] `next.config` で `output: 'standalone'` を設定(設定済み)
 - [x] マルチステージ `Dockerfile` と `.dockerignore` 作成(node:24-slim の3段構成、openssl 導入、非root実行、PORT=8080)
 - [x] ローカルで `docker build` / `docker run` による動作確認(コンテナ上で `/` が200、`/api/chat` のストリーミング応答を確認。`docker --env-file` は引用符を外さないため、引用符付きの `.env.local` をそのまま渡すとAPIキーが無効になる点に注意)
-- [ ] Google Cloud プロジェクト作成、Cloud Run / Cloud Build / Artifact Registry の有効化
-- [ ] Secret Manager に `GOOGLE_API_KEY` と `MONGODB_URI` を登録し、Cloud Run に注入
-- [ ] Cloud Build でイメージをビルドし、Cloud Run にデプロイ
-- [ ] Cloud Run の設定（リクエストタイムアウト、最大インスタンス数、同時実行数）
-- [ ] MongoDB Atlas のネットワークアクセス許可を設定（Cloud Run の送信元IPは固定でないため、方式を検討）
-- [ ] 本番URLでストリーミング・テーマ・レスポンシブを確認
+- [x] Google Cloud プロジェクト作成、Cloud Run / Cloud Build / Artifact Registry の有効化(プロジェクト `ai-chatbot-511405`、リージョン asia-northeast1。Secret Manager も有効化、Artifact Registry リポジトリ `ai-chatbot` 作成。有効化直後は一時的に権限エラーが出るため少し待って再実行する)
+- [x] Secret Manager に `GOOGLE_API_KEY` と `MONGODB_URI` を登録し、Cloud Run に注入(デフォルトのコンピュートSAに accessor 権限を付与、`--set-secrets` で注入)
+- [x] Cloud Build でイメージをビルドし、Cloud Run にデプロイ(`gcloud builds submit --tag …/ai-chatbot/app:v1` → サービス `ai-chatbot`、URL: https://ai-chatbot-599407179827.asia-northeast1.run.app)
+- [x] Cloud Run の設定（タイムアウト300秒、最大インスタンス1、同時実行40、メモリ512Mi。レート制限がインメモリのため最大1にして正確性を保つ）
+- [x] MongoDB Atlas のネットワークアクセス許可を設定（Cloud Run の送信元IPは固定でないため `0.0.0.0/0` を許可。接続文字列の認証情報が防御になるため強いパスワードを維持する）
+- [x] 本番URLでストリーミング・テーマ・レスポンシブを確認（2026-10-12 curl でストリーミング・履歴保存/復元・他セッション非公開を確認、Playwright でスマホ幅/PC幅×ダーク/ライトを目視確認）
 
-**検証**: 公開URLで会話でき、ストリーミングが途切れない
+**検証**: 公開URLで会話でき、ストリーミングが途切れない（確認済み）
 
 ## Phase 8: 仕上げ
 
