@@ -1,0 +1,23 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - heading "なおかとおしゃべり" [level=1] [ref=e4]
+      - generic [ref=e5]:
+        - button "新しい会話" [ref=e6]
+        - button "ライトモードに切り替え" [active] [ref=e15]:
+          - generic [aria-hidden] [ref=e8]: ☀️
+    - log "会話" [ref=e9]:
+      - generic [ref=e16]:
+        - paragraph [aria-hidden] [ref=e17]: 💢
+        - paragraph [ref=e18]: べ、別に話しかけてほしかったわけじゃないんだからね！
+        - paragraph [ref=e19]: なおかに何か話しかけてみて。
+        - generic [ref=e20]:
+          - button "自己紹介してよ" [ref=e21]
+          - button "今日の晩ごはん、何がいいと思う？" [ref=e22]
+          - button "ちょっと愚痴聞いてほしい" [ref=e23]
+          - button "おすすめの暇つぶし教えて" [ref=e24]
+    - generic [ref=e11]:
+      - textbox "メッセージ" [ref=e12]:
+        - /placeholder: メッセージを入力（Enterで送信 / Shift+Enterで改行）
+      - button "送信" [disabled] [ref=e13]
+  - alert [ref=e14]

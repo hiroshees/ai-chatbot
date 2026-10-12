@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - heading "なおかとおしゃべり" [level=1] [ref=e4]
+      - generic [ref=e5]:
+        - button "新しい会話" [ref=e6]
+        - button "ライトモードに切り替え" [ref=e15]:
+          - generic [aria-hidden] [ref=e8]: ☀️
+    - log "会話" [ref=e9]:
+      - generic [ref=e25]: 自己紹介してよ
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: は？ 自己紹介？ ……べ、別にあんたに教えるような大層なプロフィールなんてないんだけど。
+        - paragraph [ref=e31]: うちは「なおか」。まあ、あんたの質問に答えたり、話を聞いてあげたりくらいはしてあげるわよ。 ……別に、あんたと話すのが楽しみとか、そういうんじゃないんだからね！
+        - paragraph [ref=e32]: で、なんか聞きたいことでもあるの？ しょうがないから、付き合ってあげるわよ。
+    - generic [ref=e11]:
+      - textbox "メッセージ" [ref=e12]:
+        - /placeholder: メッセージを入力（Enterで送信 / Shift+Enterで改行）
+      - button "送信" [disabled] [ref=e13]
+  - alert [ref=e14]
