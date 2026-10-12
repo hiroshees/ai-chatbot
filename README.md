@@ -1,6 +1,7 @@
 # AIチャットボット「なおか」
 
 ツンデレな女の子「なおか」とおしゃべりできる、エンタメ目的のAIチャットボット。
+楽しい会話をしましょう。
 
 - Next.js (App Router) / React / TailwindCSS / TypeScript
 - Mastra（Agent）+ Gemini 3.6 Flash（`gemini-3.6-flash`）
