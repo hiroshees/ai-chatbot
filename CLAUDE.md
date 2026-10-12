@@ -95,11 +95,20 @@
 src/
   app/              # Next.js App Router（ページ・Route Handler）
     api/chat/       # ストリーミングチャットAPI
-  components/       # UIコンポーネント（shadcn/ui 含む）
-  mastra/           # Mastra 設定・Agent 定義
-  lib/              # DB接続などの共通処理
+    api/history/    # 履歴取得API
+    api/session/    # 新しい会話（セッション発行）API
+  components/       # UIコンポーネント（shadcn/ui は未使用）
+  mastra/           # Mastra 設定・Agent 定義（naoka-agent.ts / naoka-instructions.ts）
+  lib/              # DB接続・履歴・セッション・レート制限などの共通処理
+prisma/             # Prisma スキーマ
+scripts/            # 手動確認用スクリプト（agent:try / load:test）
 tests/              # Vitest テスト
 ```
+
+### 運用の実態
+- 本番は Google Cloud Run（プロジェクト `ai-chatbot-511405`、asia-northeast1、サービス `ai-chatbot`）。シークレットは Secret Manager から注入する。デプロイ手順は README を参照。
+- リクエスト頻度制限はインメモリ（セッション12回/分・IP60回/分）。インスタンス間で共有されないため、Cloud Run の最大インスタンス数は1にしている。増やす場合は制限の保存先を見直すこと。
+- Atlas のネットワークアクセスは `0.0.0.0/0` を許可している（Cloud Run の送信元IPが固定でないため）。
 
 ## 環境変数
 
@@ -143,4 +152,3 @@ pnpm typecheck      # 型チェック（next typegen + tsc --noEmit）
 ## 未決事項
 
 - セリフの具体例（挨拶、照れ隠し、エラー時など。名前・一人称・二人称・口調は決定済み）
-- 容量超過時に Atlas が返す書き込みエラーのコード/メッセージ（判定条件の確定は実装時に実機で確認）
