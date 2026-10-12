@@ -76,5 +76,5 @@ export async function readErrorMessage(res: Response): Promise<string> {
   } catch {
     // JSON でない応答は既定文言にする
   }
-  return "うまく送れなかった。もう一度試してね。";
+  return "ごめんね。うまく送れなかったみたい。もう一度試してね。";
 }
