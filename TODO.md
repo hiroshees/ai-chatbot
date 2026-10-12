@@ -100,9 +100,9 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 ## Phase 7: Google Cloud Run デプロイ
 
-- [ ] `next.config` で `output: 'standalone'` を設定
-- [ ] マルチステージ `Dockerfile` と `.dockerignore` 作成
-- [ ] ローカルで `docker build` / `docker run` による動作確認
+- [x] `next.config` で `output: 'standalone'` を設定(設定済み)
+- [x] マルチステージ `Dockerfile` と `.dockerignore` 作成(node:24-slim の3段構成、openssl 導入、非root実行、PORT=8080)
+- [x] ローカルで `docker build` / `docker run` による動作確認(コンテナ上で `/` が200、`/api/chat` のストリーミング応答を確認。`docker --env-file` は引用符を外さないため、引用符付きの `.env.local` をそのまま渡すとAPIキーが無効になる点に注意)
 - [ ] Google Cloud プロジェクト作成、Cloud Run / Cloud Build / Artifact Registry の有効化
 - [ ] Secret Manager に `GOOGLE_API_KEY` と `MONGODB_URI` を登録し、Cloud Run に注入
 - [ ] Cloud Build でイメージをビルドし、Cloud Run にデプロイ

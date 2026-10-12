@@ -3,6 +3,10 @@
 //   pnpm load:test [同時接続数=8] [URL=http://localhost:3000]
 // 各接続は別セッションとして1往復し、初回トークンまでと完了までの時間を測る。
 // 実DBに履歴が数件保存される。
+
+// トップレベル await を使うため、ファイルをモジュールとして扱わせる
+export {};
+
 const concurrency = Number(process.argv[2] ?? 8);
 const baseUrl = process.argv[3] ?? "http://localhost:3000";
 
