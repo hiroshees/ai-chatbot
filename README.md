@@ -49,7 +49,7 @@ pnpm load:test   # 同時接続の簡易負荷確認（実APIを呼ぶ）
 pnpm db:push     # Prisma スキーマを DB に反映
 ```
 
-`make help` で Makefile のコマンド一覧を表示できる。`make init`（初期化）、`make dev`（開発サーバー）、`make build`（ビルド）、`make check`（lint・型チェック・テスト）、`make deploy`（Cloud Build でビルドして Cloud Run にデプロイ）、`make url`（公開URL表示）。
+`make help` で Makefile のコマンド一覧を表示できる。`make init`（初期化）、`make dev`（開発サーバー）、`make build`（ビルド）、`make check`（lint・型チェック・テスト）、`make image`（Cloud Build でイメージをビルド）、`make deploy`（イメージをビルドして Cloud Run にデプロイ）、`make url`（公開URL表示）。
 
 ## デプロイ（Google Cloud Run）
 
