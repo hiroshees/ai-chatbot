@@ -6,6 +6,8 @@ export type ChatMessage =
 export const MAX_MESSAGES = 50;
 export const MAX_MESSAGE_LENGTH = 4000;
 export const MAX_TOTAL_LENGTH = 20000;
+// JSON エスケープ（\uXXXX で1文字6文字）と構造分を見込んだ、ボディ全体の文字数上限
+export const MAX_BODY_LENGTH = MAX_TOTAL_LENGTH * 6 + 10_000;
 
 export type ValidationResult =
   | { ok: true; messages: ChatMessage[] }
