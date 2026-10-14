@@ -2,15 +2,20 @@ import { naokaAgent } from "@/mastra/naoka-agent.ts";
 import {
   badRequestInfo,
   classifyChatError,
+  forbiddenInfo,
   tooManyRequestsInfo,
 } from "@/lib/chat-errors.ts";
-import { validateChatRequest } from "@/lib/chat-request.ts";
+import {
+  MAX_BODY_LENGTH,
+  validateChatRequest,
+} from "@/lib/chat-request.ts";
 import {
   encodeEvent,
   toChatEvents,
   withPersistence,
   type ChatStreamEvent,
 } from "@/lib/chat-stream.ts";
+import { isSameOriginRequest } from "@/lib/origin.ts";
 import { saveExchangeSafely } from "@/lib/history.ts";
 import { prismaHistoryStore } from "@/lib/history-store.ts";
 import {
@@ -41,9 +46,17 @@ function errorResponse(info: { code: string; status: number; message: string }) 
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return errorResponse(forbiddenInfo());
+  }
+
   let body: unknown;
   try {
-    body = await request.json();
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_LENGTH) {
+      return errorResponse(badRequestInfo("リクエストが大きすぎます。"));
+    }
+    body = JSON.parse(raw);
   } catch {
     return errorResponse(badRequestInfo("JSON の形式が正しくありません。"));
   }

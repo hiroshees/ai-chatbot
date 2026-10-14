@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyChatError } from "@/lib/chat-errors.ts";
+import { classifyChatError, forbiddenInfo } from "@/lib/chat-errors.ts";
 
 describe("classifyChatError", () => {
   it.each([
@@ -20,5 +20,11 @@ describe("classifyChatError", () => {
   it("ユーザー向けメッセージに内部エラー文を含めない", () => {
     const info = classifyChatError(new Error("secret-key-abc"));
     expect(info.message).not.toContain("secret-key-abc");
+  });
+});
+
+describe("forbiddenInfo", () => {
+  it("403 の forbidden 種別を返す", () => {
+    expect(forbiddenInfo()).toMatchObject({ code: "forbidden", status: 403 });
   });
 });

@@ -1,5 +1,6 @@
 export type ChatErrorCode =
   | "bad_request"
+  | "forbidden"
   | "auth"
   | "rate_limit"
   | "timeout"
@@ -13,7 +14,7 @@ export type ChatErrorInfo = {
 };
 
 // ユーザー向けメッセージ。内部エラーの詳細は含めない
-const ERRORS: Record<Exclude<ChatErrorCode, "bad_request">, ChatErrorInfo> = {
+const ERRORS: Record<Exclude<ChatErrorCode, "bad_request" | "forbidden">, ChatErrorInfo> = {
   auth: {
     code: "auth",
     status: 500,
@@ -101,4 +102,13 @@ export function tooManyRequestsInfo(retryAfterSec: number): ChatErrorInfo {
 
 export function badRequestInfo(message: string): ChatErrorInfo {
   return { code: "bad_request", status: 400, message };
+}
+
+// 別オリジンからのリクエスト（CSRF 対策で拒否）
+export function forbiddenInfo(): ChatErrorInfo {
+  return {
+    code: "forbidden",
+    status: 403,
+    message: "このリクエストは受け付けられません。",
+  };
 }

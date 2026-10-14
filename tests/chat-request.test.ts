@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  MAX_BODY_LENGTH,
   MAX_MESSAGE_LENGTH,
   MAX_MESSAGES,
+  MAX_TOTAL_LENGTH,
   validateChatRequest,
 } from "@/lib/chat-request.ts";
 
@@ -41,5 +43,14 @@ describe("validateChatRequest", () => {
         messages: Array(6).fill(user("a".repeat(MAX_MESSAGE_LENGTH))),
       }).ok,
     ).toBe(false);
+  });
+});
+
+describe("MAX_BODY_LENGTH", () => {
+  it("上限いっぱいの会話を JSON にしても収まる", () => {
+    // 全文字が \uXXXX にエスケープされる最悪ケース
+    const content = "\u0001".repeat(MAX_TOTAL_LENGTH);
+    const body = JSON.stringify({ messages: [{ role: "user", content }] });
+    expect(body.length).toBeLessThanOrEqual(MAX_BODY_LENGTH);
   });
 });

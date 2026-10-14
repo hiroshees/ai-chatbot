@@ -122,28 +122,40 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 `pnpm lint` / 型チェック / `pnpm test`（71件）は通過済み。以下は仕様（CLAUDE.md）と現状コードの差分、および運用上の不足。優先度は目安。着手前にユーザーへ確認する。
 
-### 高: 仕様との差分・コスト/障害リスク
+## Phase 9: セキュリティ対策
 
-- [ ] **停止・失敗時に履歴が保存されない**: 履歴は応答が `done` になった時点でしか保存しない（`src/lib/chat-stream.ts` の `withPersistence`）。停止ボタンで中断した場合や応答エラーの場合、画面には残るユーザー発言・途中の応答がリロードで消える。中断時も途中までの応答を保存するか、ユーザー発言だけでも先に保存するかを決めて実装する
-- [ ] **履歴復元が全件読み込み**: `GET /api/history`（`src/lib/history-store.ts` の `list`）に件数上限がない。「メッセージ数の制限なし」でデータが溜まると復元が重くなる。直近N件の取得、または古い分の段階的な読み込みにする。なお Agent に渡す文脈は直近50件/20,000文字に切り詰める（`selectMessagesForRequest`）ため、画面の履歴と文脈が一致しない点も仕様として明記する
-- [ ] **出力トークン数の上限が未設定**: `src/mastra/naoka-agent.ts` に `maxOutputTokens` 等の指定がない。頻度制限はインメモリでインスタンス再起動時にリセットされるため、コスト暴走の抑止として上限を設ける
-- [ ] **GCP の予算アラート未設定**: 認証なしで公開しているため、Gemini の利用料と Cloud Run の費用に予算アラートを設定する（Cloud Billing の予算）
-- [ ] **`/api/history` と `/api/session` に頻度制限がない**: `POST /api/chat` だけが制限対象。DB読み取り・Cookie発行も `RateLimiter` の対象にするか検討する
+- [x] CSRF 対策の確認（Cookie は `SameSite=Lax` 設定済みのうえ、`POST /api/chat`・`POST /api/session` に Origin 検証を追加。別オリジンは 403。Origin を送らない curl・負荷試験は許可。`src/lib/origin.ts`）
+- [x] 入力値の検証の見直し（`/api/history`・`/api/session` は入力がセッションID Cookie のみで、形式検証済みのため変更なし。`/api/chat` はパース前にボディ全体の上限 `MAX_BODY_LENGTH` を追加）
+- [x] セキュリティヘッダーの設定（CSP、X-Frame-Options、X-Content-Type-Options、Referrer-Policy、Permissions-Policy、本番のみ HSTS。`next.config.ts` の `headers()` と `src/lib/security-headers.ts`。同一オリジン構成のため CORS 設定は不要。インラインスクリプトのため script-src に `'unsafe-inline'` が必要）
 
-### 中: 品質・保守性
+**検証**: レスポンスヘッダーに設定が反映され、チャットの動作・テーマ・Markdown 表示が壊れない（確認済み: 本番ビルドで curl によりヘッダーと CSRF の 403 を確認、Playwright で1往復の会話とテーマ切り替えがコンソールエラーなしで動作。Markdown・コードブロックの表示は目視未確認）
 
-- [ ] **セリフ例の確認**（着手前の未決事項）: `src/mastra/naoka-instructions.ts` のセリフ例は仮案のまま。内容を確定して、冒頭コメント「確認待ち」を外す
-- [ ] **容量超過以外の保存失敗が無通知**: DBエラー（接続断など）で保存に失敗しても、ユーザーには何も出ない（`saveExchangeSafely` が `"error"` を返すだけ）。仕様にはないため、通知するか（または現状のままログのみとするか）を決める
-- [ ] **`Session` モデルが実質未使用**: `saveExchange` が毎回 `session.upsert` を行うが、どこからも読まれない。不要な書き込み（容量も消費）なので、モデルごと削除するか、使い道を決める
-- [ ] **保存が非原子的**: `saveExchange` は upsert と `createMany` を別々に実行する。途中で失敗するとユーザー発言だけが残りうる。トランザクション不可（MongoDB の構成による）なら1回の書き込みにまとめる
-- [ ] **API Route Handler のテストがない**: `tests/` はロジック単体のみ。`/api/chat`（検証・429・保存失敗時の継続）と `/api/history` の結合的なテストを、LLM・DBをモックして追加する
+## Phase 10: レート制限の適用範囲拡大
 
-### 低: 仕上げ・任意
+- [ ] `GET /api/history` と `POST /api/session` に既存の `RateLimiter`（`src/lib/rate-limit.ts`）を適用する（`POST /api/chat` はセッション12回/分・IP60回/分で実装済み）
+- [ ] 上記の超過時に 429 + `Retry-After` を返し、クライアントで適切なメッセージを表示する
+- [ ] Vitest: 追加した制限のテスト
 
-- [ ] create-next-app の雛形が残っている: `public/` の `file.svg` / `globe.svg` / `next.svg` / `vercel.svg` / `window.svg`（未使用）と、既定の `src/app/favicon.ico`。不要なものを削除し、アプリ用のアイコンに差し替える
-- [ ] コールドスタート対策: Cloud Run は最小インスタンス0。初回アクセスが遅い場合は `--min-instances 1` を検討する（費用が増える）
-- [ ] Atlas の `0.0.0.0/0` 許可の見直し: 利用が増えた場合は Cloud NAT と静的IPで送信元を固定する
-- [ ] 容量超過モーダルの本番での実機確認: Atlas 満杯の再現は難しいため、判定ロジックのモックテスト止まり。実際に満杯になった際の挙動をログで確認する
+**検証**: 制限超過時に 429 が返り、画面が壊れない
+
+## Phase 11: 環境変数とログ管理
+
+- [ ] 環境変数の検証（`GOOGLE_API_KEY`・`MONGODB_URI` が未設定のとき、起動時または初回利用時に分かりやすいエラーにする）
+- [ ] ログの整理（ログレベルの使い分け。シークレットと会話本文を出さない方針は維持）
+- [ ] 構造化ログ・エラー追跡サービス（Sentry 等）の導入は、依存追加になるため要否をユーザーに確認してから決める
+
+## Phase 12: 運用確認
+
+- [ ] ヘルスチェック用エンドポイントの追加と、Cloud Run のヘルスチェック設定の要否の判断（現状は未実装）
+- [ ] Atlas 無料枠（M0）の自動バックアップの有無を確認し、必要ならバックアップ方針を決める
+- [ ] Cloud Run のメモリ使用量・レスポンスタイムを Cloud Monitoring で確認する（APM などの追加導入は規模に対して過剰のため行わない）
+
+## Phase 13: CI/CD の拡充
+
+`.github/workflows/ci.yml` で lint・型チェック・テスト・ビルドは実行済み。以下は不足分。
+
+- [ ] コードカバレッジレポートの出力（要否を確認してから追加）
+- [ ] 自動デプロイ（Cloud Run へのデプロイをワークフロー化するか判断。GCP 認証情報の扱いは要確認）
 
 ## 注意
 
