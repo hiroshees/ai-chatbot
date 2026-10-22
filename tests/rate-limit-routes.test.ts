@@ -19,10 +19,16 @@ function req(path: string, method: string, ip: string, cookie?: string) {
   });
 }
 
+// globalThis に保持された共有の枠をテストごとに初期化する
+function resetLimiter() {
+  vi.resetModules();
+  delete (globalThis as { auxIpLimiter?: unknown }).auxIpLimiter;
+}
+
 const COOKIE = `sid=${"a".repeat(43)}`;
 
 describe("GET /api/history の頻度制限", () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(resetLimiter);
 
   it("上限までは通し、超過で 429 と Retry-After を返す", async () => {
     const { GET } = await import("@/app/api/history/route.ts");
@@ -39,7 +45,7 @@ describe("GET /api/history の頻度制限", () => {
 });
 
 describe("POST /api/session の頻度制限", () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(resetLimiter);
 
   it("上限までは通し、超過で 429 と Retry-After を返す", async () => {
     const { POST } = await import("@/app/api/session/route.ts");
@@ -54,7 +60,7 @@ describe("POST /api/session の頻度制限", () => {
 });
 
 describe("履歴取得と新しい会話の共有枠", () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(resetLimiter);
 
   it("Cookie なしの履歴取得は枠を消費しない", async () => {
     const { GET } = await import("@/app/api/history/route.ts");

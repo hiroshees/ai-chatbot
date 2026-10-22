@@ -1,3 +1,5 @@
+import { MissingEnvError } from "@/lib/env.ts";
+import { errorName, logger } from "@/lib/logger.ts";
 import { prismaHistoryStore } from "@/lib/history-store.ts";
 import { tooManyRequestsResponse } from "@/lib/chat-errors.ts";
 import { auxIpLimiter, clientIp } from "@/lib/rate-limit.ts";
@@ -17,7 +19,8 @@ export async function GET(request: Request) {
     const messages = await prismaHistoryStore.list(sessionId);
     return Response.json({ messages }, { headers });
   } catch (error) {
-    console.error(`[api/history] failed: ${error instanceof Error ? error.name : "unknown"}`);
+    const detail = error instanceof MissingEnvError ? error.message : errorName(error);
+    logger.error("api/history", `failed: ${detail}`);
     return Response.json(
       { error: { code: "history_unavailable", message: "履歴を読み込めなかったよ。" } },
       { status: 503, headers },
