@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MAX_MESSAGES, MAX_TOTAL_LENGTH, type ChatMessage } from "../src/lib/chat-request.ts";
 import {
   readChatEvents,
   readErrorMessage,
+  requestNewSession,
   selectMessagesForRequest,
 } from "../src/lib/chat-client.ts";
 
@@ -68,5 +69,24 @@ describe("readErrorMessage", () => {
 
   it("JSON でなければ既定文言", async () => {
     expect(await readErrorMessage(new Response("oops", { status: 502 }))).toContain("もう一度");
+  });
+});
+
+describe("requestNewSession", () => {
+  it("成功なら ok を返す", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    expect(await requestNewSession(fetcher)).toEqual({ ok: true });
+  });
+
+  it("429 ならサーバーのメッセージを返す", async () => {
+    const body = JSON.stringify({ error: { message: "待ってね" } });
+    const fetcher = vi.fn().mockResolvedValue(new Response(body, { status: 429 }));
+    expect(await requestNewSession(fetcher)).toEqual({ ok: false, message: "待ってね" });
+  });
+
+  it("ネットワーク断でも例外を投げず失敗メッセージを返す", async () => {
+    const fetcher = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
+    const result = await requestNewSession(fetcher);
+    expect(result.ok).toBe(false);
   });
 });

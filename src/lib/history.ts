@@ -1,4 +1,6 @@
 import type { ChatMessage } from "./chat-request.ts";
+import { MissingEnvError } from "./env.ts";
+import { errorName, logger } from "./logger.ts";
 import { isStorageFullError } from "./storage-errors.ts";
 
 // DB アクセスの薄い抽象。テストでは差し替える
@@ -31,10 +33,12 @@ export async function saveExchangeSafely(
     return "saved";
   } catch (error) {
     if (isStorageFullError(error)) {
-      console.error("[history] storage full");
+      logger.warn("history", "storage full");
       return "full";
     }
-    console.error(`[history] save failed: ${error instanceof Error ? error.name : "unknown"}`);
+    // 設定不備は変数名だけを出す（値は含まない）
+    const detail = error instanceof MissingEnvError ? error.message : errorName(error);
+    logger.error("history", `save failed: ${detail}`);
     return "error";
   }
 }

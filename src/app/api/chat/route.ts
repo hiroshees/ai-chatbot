@@ -3,7 +3,7 @@ import {
   badRequestInfo,
   classifyChatError,
   forbiddenInfo,
-  tooManyRequestsInfo,
+  tooManyRequestsResponse,
 } from "@/lib/chat-errors.ts";
 import {
   MAX_BODY_LENGTH,
@@ -15,6 +15,8 @@ import {
   withPersistence,
   type ChatStreamEvent,
 } from "@/lib/chat-stream.ts";
+import { assertEnv, MissingEnvError, REQUIRED_ENV } from "@/lib/env.ts";
+import { logger } from "@/lib/logger.ts";
 import { isSameOriginRequest } from "@/lib/origin.ts";
 import { saveExchangeSafely } from "@/lib/history.ts";
 import { prismaHistoryStore } from "@/lib/history-store.ts";
@@ -37,8 +39,11 @@ const limiters = {
 };
 
 // 秘密情報や会話本文を含みうるため、エラー内容はログに出さず種別だけ記録する
-function errorResponse(info: { code: string; status: number; message: string }) {
-  console.error(`[api/chat] code=${info.code} status=${info.status}`);
+function errorResponse(
+  info: { code: string; status: number; message: string },
+  detail?: string,
+) {
+  logger.error("api/chat", `code=${info.code} status=${info.status}${detail ? ` ${detail}` : ""}`);
   return Response.json(
     { error: { code: info.code, message: info.message } },
     { status: info.status },
@@ -69,12 +74,14 @@ export async function POST(request: Request) {
   const session = resolveSession(request);
   const rate = checkChatRate(limiters, session.sessionId, clientIp(request));
   if (!rate.ok) {
-    const info = tooManyRequestsInfo(rate.retryAfterSec);
-    console.error(`[api/chat] code=${info.code} status=${info.status} (limited)`);
-    return Response.json(
-      { error: { code: info.code, message: info.message } },
-      { status: info.status, headers: { "Retry-After": String(rate.retryAfterSec) } },
-    );
+    return tooManyRequestsResponse("api/chat", rate.retryAfterSec);
+  }
+  try {
+    assertEnv(REQUIRED_ENV.chat);
+  } catch (error) {
+    // 変数名だけをログに足す（値は含まれない）。ログは errorResponse の1行にまとめる
+    const detail = error instanceof MissingEnvError ? error.message : undefined;
+    return errorResponse(classifyChatError(error), detail);
   }
   const userMessage = validated.messages[validated.messages.length - 1].content;
 
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
         if (!first.done) controller.enqueue(encodeEvent(first.value));
         for await (const event of events) {
           if (event.type === "error") {
-            console.error(`[api/chat] code=${event.code} (stream)`);
+            logger.error("api/chat", `code=${event.code} (stream)`);
           }
           controller.enqueue(encodeEvent(event));
         }

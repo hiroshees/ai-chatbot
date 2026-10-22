@@ -132,17 +132,17 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 ## Phase 10: レート制限の適用範囲拡大
 
-- [ ] `GET /api/history` と `POST /api/session` に既存の `RateLimiter`（`src/lib/rate-limit.ts`）を適用する（`POST /api/chat` はセッション12回/分・IP60回/分で実装済み）
-- [ ] 上記の超過時に 429 + `Retry-After` を返し、クライアントで適切なメッセージを表示する
-- [ ] Vitest: 追加した制限のテスト
+- [x] `GET /api/history` と `POST /api/session` に既存の `RateLimiter`（`src/lib/rate-limit.ts`）を適用する（`POST /api/chat` はセッション12回/分・IP60回/分で実装済み）
+- [x] 上記の超過時に 429 + `Retry-After` を返し、クライアントで適切なメッセージを表示する
+- [x] Vitest: 追加した制限のテスト
 
 **検証**: 制限超過時に 429 が返り、画面が壊れない
 
 ## Phase 11: 環境変数とログ管理
 
-- [ ] 環境変数の検証（`GOOGLE_API_KEY`・`MONGODB_URI` が未設定のとき、起動時または初回利用時に分かりやすいエラーにする）
-- [ ] ログの整理（ログレベルの使い分け。シークレットと会話本文を出さない方針は維持）
-- [ ] 構造化ログ・エラー追跡サービス（Sentry 等）の導入は、依存追加になるため要否をユーザーに確認してから決める
+- [x] 環境変数の検証（`GOOGLE_API_KEY`・`MONGODB_URI` が未設定のとき、起動時または初回利用時に分かりやすいエラーにする）
+- [x] ログの整理（ログレベルの使い分け。シークレットと会話本文を出さない方針は維持）
+- [x] 構造化ログ・エラー追跡サービス（Sentry 等）の導入は見送り（規模に対して過剰。Cloud Run 標準の Cloud Logging で運用する）
 
 ## Phase 12: 運用確認
 

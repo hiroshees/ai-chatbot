@@ -22,6 +22,8 @@ export function ChatView() {
   const warning = useStorageWarning();
   const chat = useChat({ onStorageFull: warning.notifyFull });
   const [input, setInput] = useState("");
+  // 「新しい会話」の失敗通知。送信エラーと違い、再送ボタンは出さない
+  const [notice, setNotice] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
   const streaming = chat.status === "streaming";
@@ -43,6 +45,7 @@ export function ChatView() {
   function submit(text: string) {
     if (streaming || text.trim() === "") return;
     stickRef.current = true;
+    setNotice(null);
     chat.send(text);
     setInput("");
   }
@@ -63,7 +66,9 @@ export function ChatView() {
         </h1>
         <div className="flex items-center gap-2">
           <NewConversationButton
+            onError={setNotice}
             onStarted={() => {
+              setNotice(null);
               chat.reset();
               warning.reset();
               setInput("");
@@ -130,6 +135,15 @@ export function ChatView() {
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {notice && (
+          <div
+            role="alert"
+            className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200"
+          >
+            {notice}
           </div>
         )}
 

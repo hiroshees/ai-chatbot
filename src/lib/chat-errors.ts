@@ -1,3 +1,6 @@
+import { MissingEnvError } from "./env.ts";
+import { logger } from "./logger.ts";
+
 export type ChatErrorCode =
   | "bad_request"
   | "forbidden"
@@ -63,6 +66,8 @@ function readMessage(error: unknown): string {
 
 // 例外をユーザー向けのエラー情報へ変換する。本文・秘密情報はここでは扱わない
 export function classifyChatError(error: unknown): ChatErrorInfo {
+  // 必須の環境変数が無いのはサーバー側の設定不備
+  if (error instanceof MissingEnvError) return ERRORS.auth;
   if (
     error instanceof Error &&
     (error.name === "TimeoutError" || error.name === "AbortError")
@@ -111,4 +116,21 @@ export function forbiddenInfo(): ChatErrorInfo {
     status: 403,
     message: "このリクエストは受け付けられません。",
   };
+}
+
+// 頻度制限超過の 429 応答（Retry-After つき）。各 Route Handler で共通に使う
+export function tooManyRequestsResponse(
+  route: string,
+  retryAfterSec: number,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  const info = tooManyRequestsInfo(retryAfterSec);
+  logger.warn(route, `code=${info.code} status=${info.status} (limited)`);
+  return Response.json(
+    { error: { code: info.code, message: info.message } },
+    {
+      status: info.status,
+      headers: { ...extraHeaders, "Retry-After": String(retryAfterSec) },
+    },
+  );
 }
