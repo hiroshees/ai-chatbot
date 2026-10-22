@@ -12,6 +12,7 @@
     "agent:try": "node --env-file-if-exists=.env.local scripts/try-agent.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "postinstall": "prisma generate",
     "db:push": "node --env-file=.env.local node_modules/prisma/build/index.js db push"
   },
@@ -29,6 +30,7 @@
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "5.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "prisma": "6.19.3",
