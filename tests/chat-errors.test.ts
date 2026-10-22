@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MissingEnvError } from "@/lib/env.ts";
 import { classifyChatError, forbiddenInfo, tooManyRequestsResponse } from "@/lib/chat-errors.ts";
 
 describe("classifyChatError", () => {
@@ -38,5 +39,11 @@ describe("tooManyRequestsResponse", () => {
     const body = (await res.json()) as { error: { code: string; message: string } };
     expect(body.error.code).toBe("rate_limit");
     expect(body.error.message).toContain("7秒");
+  });
+});
+
+describe("classifyChatError（環境変数）", () => {
+  it("MissingEnvError は auth（設定不備）として扱う", () => {
+    expect(classifyChatError(new MissingEnvError(["GOOGLE_API_KEY"])).code).toBe("auth");
   });
 });
