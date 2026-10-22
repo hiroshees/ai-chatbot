@@ -17,6 +17,7 @@
   --on-accent: #ffffff;
   --glow-1: rgb(244 114 182 / 0.28);
   --glow-2: rgb(167 139 250 / 0.25);
+  --scrollbar-thumb: 55%;
   color-scheme: light;
 }
 
@@ -34,6 +35,7 @@
   --on-accent: #1a0f2b;
   --glow-1: rgb(236 72 153 / 0.22);
   --glow-2: rgb(139 92 246 / 0.28);
+  --scrollbar-thumb: 65%;
   color-scheme: dark;
 }
 
@@ -80,6 +82,55 @@ body {
   background-attachment: fixed;
   color: var(--foreground);
   transition: background-color 0.3s, color 0.3s;
+}
+
+/* スクロールバー: アクセント色（ピンク→紫）の細いつまみに揃える。ライト/ダークはトークンの切替で追従する。
+   Chrome・Safari・Edge は ::-webkit-scrollbar、Firefox は標準プロパティで指定する
+   （Chrome は標準プロパティを指定すると ::-webkit-scrollbar を無視するため、分けている） */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent) var(--scrollbar-thumb), transparent),
+    color-mix(in srgb, var(--accent-2) var(--scrollbar-thumb), transparent)
+  );
+  /* 透明の縁取りで、つまみを細く見せる */
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+}
+
+/* 横スクロール（コードブロック・表）では、グラデーションの向きを横にする */
+::-webkit-scrollbar-thumb:horizontal {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) var(--scrollbar-thumb), transparent),
+    color-mix(in srgb, var(--accent-2) var(--scrollbar-thumb), transparent)
+  );
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(to bottom, var(--accent), var(--accent-2));
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background-image: linear-gradient(to right, var(--accent), var(--accent-2));
+}
+
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent) var(--scrollbar-thumb), transparent) transparent;
+  }
 }
 
 /* アニメーションを望まない設定のユーザーには動きを止める */
