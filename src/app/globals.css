@@ -109,8 +109,21 @@ body {
   background-clip: content-box;
 }
 
+/* 横スクロール（コードブロック・表）では、グラデーションの向きを横にする */
+::-webkit-scrollbar-thumb:horizontal {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) var(--scrollbar-thumb), transparent),
+    color-mix(in srgb, var(--accent-2) var(--scrollbar-thumb), transparent)
+  );
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background-image: linear-gradient(to bottom, var(--accent), var(--accent-2));
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background-image: linear-gradient(to right, var(--accent), var(--accent-2));
 }
 
 @supports (-moz-appearance: none) {
