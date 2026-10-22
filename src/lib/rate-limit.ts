@@ -56,6 +56,7 @@ export const auxIpLimiter = new RateLimiter(AUX_IP_RULE);
 
 // 直近のプロキシ（Cloud Run）が X-Forwarded-For の末尾に付けた実クライアントIPを使う。
 // 先頭側はクライアントが偽装できるため見ない
+// ヘッダーが無い環境（ローカル実行など）では全員が "unknown" の1つの枠を共有する。Cloud Run では必ず付くため許容している
 export function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const last = forwarded?.split(",").at(-1)?.trim();
