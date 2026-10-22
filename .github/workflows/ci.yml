@@ -33,7 +33,8 @@ jobs:
 
       - run: pnpm typecheck
 
-      - run: pnpm test
+      # テストとあわせてカバレッジをログに出力する（最低ラインでの失敗判定はしない）
+      - run: pnpm test:coverage
 
       # ビルドにシークレットは使わない（DB・Gemini への実接続は行わない）
       - run: pnpm build
