@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyChatError, forbiddenInfo } from "@/lib/chat-errors.ts";
+import { classifyChatError, forbiddenInfo, tooManyRequestsResponse } from "@/lib/chat-errors.ts";
 
 describe("classifyChatError", () => {
   it.each([
@@ -26,5 +26,17 @@ describe("classifyChatError", () => {
 describe("forbiddenInfo", () => {
   it("403 の forbidden 種別を返す", () => {
     expect(forbiddenInfo()).toMatchObject({ code: "forbidden", status: 403 });
+  });
+});
+
+describe("tooManyRequestsResponse", () => {
+  it("429 と Retry-After、追加ヘッダーを付けて返す", async () => {
+    const res = tooManyRequestsResponse("api/test", 7, { "Cache-Control": "no-store" });
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("7");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe("rate_limit");
+    expect(body.error.message).toContain("7秒");
   });
 });

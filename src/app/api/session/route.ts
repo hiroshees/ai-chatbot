@@ -1,5 +1,6 @@
-import { forbiddenInfo } from "@/lib/chat-errors.ts";
+import { forbiddenInfo, tooManyRequestsResponse } from "@/lib/chat-errors.ts";
 import { isSameOriginRequest } from "@/lib/origin.ts";
+import { auxIpLimiter, clientIp } from "@/lib/rate-limit.ts";
 import { buildSessionCookie, createSessionId } from "@/lib/session.ts";
 
 // 「新しい会話」: 新しいセッションIDを発行する。過去の履歴は削除しない
@@ -10,6 +11,12 @@ export async function POST(request: Request) {
       { error: { code: info.code, message: info.message } },
       { status: info.status, headers: { "Cache-Control": "no-store" } },
     );
+  }
+  const rate = auxIpLimiter.check(clientIp(request));
+  if (!rate.ok) {
+    return tooManyRequestsResponse("api/session", rate.retryAfterSec, {
+      "Cache-Control": "no-store",
+    });
   }
   const headers = new Headers({ "Cache-Control": "no-store" });
   headers.append("Set-Cookie", buildSessionCookie(createSessionId()));

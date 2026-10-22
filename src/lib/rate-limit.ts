@@ -12,6 +12,9 @@ export const SESSION_RULE: RateLimitRule = { limit: 12, windowMs: 60_000 };
 // IPごとの上限。同じ拠点の複数人が使う想定でセッションより緩くする
 export const IP_RULE: RateLimitRule = { limit: 60, windowMs: 60_000 };
 
+// 履歴取得・新しい会話のIPごとの上限。リロードや「新しい会話」の通常操作では届かない値にする
+export const AUX_IP_RULE: RateLimitRule = { limit: 30, windowMs: 60_000 };
+
 // インスタンス内メモリのスライディングウィンドウ。
 // Cloud Run で複数インスタンスになると上限はインスタンスごとになるが、コスト暴走の抑止には十分
 export class RateLimiter {
@@ -48,8 +51,12 @@ export class RateLimiter {
   }
 }
 
+// 履歴取得と新しい会話で1つの枠を共有する（合計で AUX_IP_RULE の回数になる）
+export const auxIpLimiter = new RateLimiter(AUX_IP_RULE);
+
 // 直近のプロキシ（Cloud Run）が X-Forwarded-For の末尾に付けた実クライアントIPを使う。
 // 先頭側はクライアントが偽装できるため見ない
+// ヘッダーが無い環境（ローカル実行など）では全員が "unknown" の1つの枠を共有する。Cloud Run では必ず付くため許容している
 export function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const last = forwarded?.split(",").at(-1)?.trim();

@@ -132,9 +132,9 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 ## Phase 10: レート制限の適用範囲拡大
 
-- [ ] `GET /api/history` と `POST /api/session` に既存の `RateLimiter`（`src/lib/rate-limit.ts`）を適用する（`POST /api/chat` はセッション12回/分・IP60回/分で実装済み）
-- [ ] 上記の超過時に 429 + `Retry-After` を返し、クライアントで適切なメッセージを表示する
-- [ ] Vitest: 追加した制限のテスト
+- [x] `GET /api/history` と `POST /api/session` に既存の `RateLimiter`（`src/lib/rate-limit.ts`）を適用する（`POST /api/chat` はセッション12回/分・IP60回/分で実装済み）
+- [x] 上記の超過時に 429 + `Retry-After` を返し、クライアントで適切なメッセージを表示する
+- [x] Vitest: 追加した制限のテスト
 
 **検証**: 制限超過時に 429 が返り、画面が壊れない
 
