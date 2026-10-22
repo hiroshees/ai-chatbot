@@ -1,0 +1,25 @@
+name: Main source branch
+
+# main への PR は dev からのものだけを許可する。
+# ルールセットではブランチ元を制限できないため、このジョブを必須チェックにして担保する
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions: {}
+
+jobs:
+  source-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: PR のブランチ元が dev であることを確認する
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_REF" != "dev" ]; then
+            echo "::error::main へ PR できるのは、このリポジトリの dev ブランチだけです（現在: ${HEAD_REPO}:${HEAD_REF}）"
+            exit 1
+          fi
