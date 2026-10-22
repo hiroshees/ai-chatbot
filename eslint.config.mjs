@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // カバレッジの出力（pnpm test:coverage）
+    "coverage/**",
   ]),
 ]);
 

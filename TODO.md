@@ -155,8 +155,8 @@ CLAUDE.md（エンタメ系AIチャットボット）に基づく実装計画。
 
 `.github/workflows/ci.yml` で lint・型チェック・テスト・ビルドは実行済み。以下は不足分。
 
-- [ ] コードカバレッジレポートの出力（要否を確認してから追加）
-- [ ] 自動デプロイ（Cloud Run へのデプロイをワークフロー化するか判断。GCP 認証情報の扱いは要確認）
+- [x] コードカバレッジレポートの出力（`@vitest/coverage-v8` を devDependencies に追加し、`pnpm test:coverage` と CI のログ出力を追加。対象は `src/**/*.ts`（UI の tsx は網羅テスト不要の方針のため除外）。最低ラインでの CI 失敗判定はしない。2026-10-22 時点: 行カバレッジ 63.6%、`src/lib` は 94%、未テストは `/api/chat` の Route Handler・hooks・`history-store.ts`）
+- [x] 自動デプロイ（見送り: GCP への認証設定（Workload Identity Federation）と権限付与の手間・リスクに対し、最大インスタンス1・想定5〜10人の規模では得られるものが小さい。`make deploy` の手動運用を続ける。リポジトリが Public のため、将来導入する場合は発火条件を `main` への push に限定すること）
 
 ## 注意
 
