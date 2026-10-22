@@ -1,9 +1,7 @@
 import { forbiddenInfo, tooManyRequestsResponse } from "@/lib/chat-errors.ts";
 import { isSameOriginRequest } from "@/lib/origin.ts";
-import { AUX_IP_RULE, clientIp, RateLimiter } from "@/lib/rate-limit.ts";
+import { auxIpLimiter, clientIp } from "@/lib/rate-limit.ts";
 import { buildSessionCookie, createSessionId } from "@/lib/session.ts";
-
-const ipLimiter = new RateLimiter(AUX_IP_RULE);
 
 // 「新しい会話」: 新しいセッションIDを発行する。過去の履歴は削除しない
 export async function POST(request: Request) {
@@ -14,10 +12,11 @@ export async function POST(request: Request) {
       { status: info.status, headers: { "Cache-Control": "no-store" } },
     );
   }
-  const rate = ipLimiter.check(clientIp(request));
+  const rate = auxIpLimiter.check(clientIp(request));
   if (!rate.ok) {
-    console.error("[api/session] code=rate_limit status=429 (limited)");
-    return tooManyRequestsResponse(rate.retryAfterSec, { "Cache-Control": "no-store" });
+    return tooManyRequestsResponse("api/session", rate.retryAfterSec, {
+      "Cache-Control": "no-store",
+    });
   }
   const headers = new Headers({ "Cache-Control": "no-store" });
   headers.append("Set-Cookie", buildSessionCookie(createSessionId()));

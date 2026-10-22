@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { readChatEvents, readErrorMessage, selectMessagesForRequest } from "@/lib/chat-client.ts";
+import {
+  HISTORY_RATE_LIMIT_MESSAGE,
+  readChatEvents,
+  readErrorMessage,
+  selectMessagesForRequest,
+} from "@/lib/chat-client.ts";
 import type { ChatMessage } from "@/lib/chat-request.ts";
 
 export type UiMessage = ChatMessage & { id: string };
@@ -44,7 +49,8 @@ export function useChat({ onStorageFull }: Options) {
           const data: { messages?: ChatMessage[] } = await res.json();
           update(() => (data.messages ?? []).map(withId));
         } else if (res.status === 429) {
-          setError(await readErrorMessage(res));
+          // 送信失敗の文言と区別し、リロードで再取得するよう促す
+          setError(HISTORY_RATE_LIMIT_MESSAGE);
         }
       } catch {
         // 復元に失敗しても空の会話として始める
@@ -147,5 +153,5 @@ export function useChat({ onStorageFull }: Options) {
     setStatus("idle");
   }, [update]);
 
-  return { messages, status, error, send, retry, stop, reset, reportError: setError };
+  return { messages, status, error, send, retry, stop, reset };
 }

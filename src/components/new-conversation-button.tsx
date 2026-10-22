@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { readErrorMessage } from "@/lib/chat-client.ts";
+import { requestNewSession } from "@/lib/chat-client.ts";
 
 type Props = {
   // 新しいセッションの発行に成功したあとに呼ぶ（メッセージ一覧のクリアなど）
@@ -16,9 +16,9 @@ export function NewConversationButton({ onStarted, onError }: Props) {
   async function start() {
     setBusy(true);
     try {
-      const res = await fetch("/api/session", { method: "POST" });
-      if (res.ok) onStarted();
-      else onError(await readErrorMessage(res));
+      const result = await requestNewSession();
+      if (result.ok) onStarted();
+      else onError(result.message);
     } finally {
       setBusy(false);
     }

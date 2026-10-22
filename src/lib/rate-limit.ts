@@ -51,6 +51,9 @@ export class RateLimiter {
   }
 }
 
+// 履歴取得と新しい会話で1つの枠を共有する（合計で AUX_IP_RULE の回数になる）
+export const auxIpLimiter = new RateLimiter(AUX_IP_RULE);
+
 // 直近のプロキシ（Cloud Run）が X-Forwarded-For の末尾に付けた実クライアントIPを使う。
 // 先頭側はクライアントが偽装できるため見ない
 export function clientIp(request: Request): string {

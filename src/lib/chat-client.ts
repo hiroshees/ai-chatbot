@@ -78,3 +78,19 @@ export async function readErrorMessage(res: Response): Promise<string> {
   }
   return "ごめんね。うまく送れなかったみたい。もう一度試してね。";
 }
+
+// 「新しい会話」用のセッション発行。ネットワーク断も含め、失敗は表示用メッセージで返す
+export async function requestNewSession(
+  fetcher: typeof fetch = fetch,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const res = await fetcher("/api/session", { method: "POST" });
+    if (res.ok) return { ok: true };
+    return { ok: false, message: await readErrorMessage(res) };
+  } catch {
+    return { ok: false, message: "通信に失敗しちゃった。ネットワークを確認してもう一度試してね。" };
+  }
+}
+
+export const HISTORY_RATE_LIMIT_MESSAGE =
+  "履歴を読み込めなかったよ。少し待ってからリロードしてね。";

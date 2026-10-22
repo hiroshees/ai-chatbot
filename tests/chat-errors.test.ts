@@ -31,7 +31,7 @@ describe("forbiddenInfo", () => {
 
 describe("tooManyRequestsResponse", () => {
   it("429 と Retry-After、追加ヘッダーを付けて返す", async () => {
-    const res = tooManyRequestsResponse(7, { "Cache-Control": "no-store" });
+    const res = tooManyRequestsResponse("api/test", 7, { "Cache-Control": "no-store" });
     expect(res.status).toBe(429);
     expect(res.headers.get("Retry-After")).toBe("7");
     expect(res.headers.get("Cache-Control")).toBe("no-store");
