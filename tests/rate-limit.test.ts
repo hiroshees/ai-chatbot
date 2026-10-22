@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { checkChatRate, clientIp, RateLimiter } from "@/lib/rate-limit.ts";
 
 describe("RateLimiter", () => {
@@ -54,5 +54,14 @@ describe("clientIp", () => {
 
   it("ヘッダが無ければ unknown", () => {
     expect(clientIp(req())).toBe("unknown");
+  });
+});
+
+describe("auxIpLimiter", () => {
+  it("モジュールを読み込み直しても同じインスタンスを共有する", async () => {
+    const first = (await import("@/lib/rate-limit.ts")).auxIpLimiter;
+    vi.resetModules();
+    const second = (await import("@/lib/rate-limit.ts")).auxIpLimiter;
+    expect(second).toBe(first);
   });
 });

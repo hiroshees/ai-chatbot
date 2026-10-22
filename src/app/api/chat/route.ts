@@ -39,8 +39,11 @@ const limiters = {
 };
 
 // 秘密情報や会話本文を含みうるため、エラー内容はログに出さず種別だけ記録する
-function errorResponse(info: { code: string; status: number; message: string }) {
-  logger.error("api/chat", `code=${info.code} status=${info.status}`);
+function errorResponse(
+  info: { code: string; status: number; message: string },
+  detail?: string,
+) {
+  logger.error("api/chat", `code=${info.code} status=${info.status}${detail ? ` ${detail}` : ""}`);
   return Response.json(
     { error: { code: info.code, message: info.message } },
     { status: info.status },
@@ -76,9 +79,9 @@ export async function POST(request: Request) {
   try {
     assertEnv(REQUIRED_ENV.chat);
   } catch (error) {
-    // 変数名だけをログに出す（値は含まれない）
-    if (error instanceof MissingEnvError) logger.error("api/chat", error.message);
-    return errorResponse(classifyChatError(error));
+    // 変数名だけをログに足す（値は含まれない）。ログは errorResponse の1行にまとめる
+    const detail = error instanceof MissingEnvError ? error.message : undefined;
+    return errorResponse(classifyChatError(error), detail);
   }
   const userMessage = validated.messages[validated.messages.length - 1].content;
 
