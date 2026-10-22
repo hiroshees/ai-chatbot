@@ -43,6 +43,8 @@ export function useChat({ onStorageFull }: Options) {
         if (res.ok) {
           const data: { messages?: ChatMessage[] } = await res.json();
           update(() => (data.messages ?? []).map(withId));
+        } else if (res.status === 429) {
+          setError(await readErrorMessage(res));
         }
       } catch {
         // 復元に失敗しても空の会話として始める
@@ -145,5 +147,5 @@ export function useChat({ onStorageFull }: Options) {
     setStatus("idle");
   }, [update]);
 
-  return { messages, status, error, send, retry, stop, reset };
+  return { messages, status, error, send, retry, stop, reset, reportError: setError };
 }

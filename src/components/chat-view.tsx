@@ -63,6 +63,7 @@ export function ChatView() {
         </h1>
         <div className="flex items-center gap-2">
           <NewConversationButton
+            onError={chat.reportError}
             onStarted={() => {
               chat.reset();
               warning.reset();

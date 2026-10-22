@@ -3,7 +3,7 @@ import {
   badRequestInfo,
   classifyChatError,
   forbiddenInfo,
-  tooManyRequestsInfo,
+  tooManyRequestsResponse,
 } from "@/lib/chat-errors.ts";
 import {
   MAX_BODY_LENGTH,
@@ -69,12 +69,8 @@ export async function POST(request: Request) {
   const session = resolveSession(request);
   const rate = checkChatRate(limiters, session.sessionId, clientIp(request));
   if (!rate.ok) {
-    const info = tooManyRequestsInfo(rate.retryAfterSec);
-    console.error(`[api/chat] code=${info.code} status=${info.status} (limited)`);
-    return Response.json(
-      { error: { code: info.code, message: info.message } },
-      { status: info.status, headers: { "Retry-After": String(rate.retryAfterSec) } },
-    );
+    console.error("[api/chat] code=rate_limit status=429 (limited)");
+    return tooManyRequestsResponse(rate.retryAfterSec);
   }
   const userMessage = validated.messages[validated.messages.length - 1].content;
 

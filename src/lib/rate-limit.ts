@@ -12,6 +12,9 @@ export const SESSION_RULE: RateLimitRule = { limit: 12, windowMs: 60_000 };
 // IPごとの上限。同じ拠点の複数人が使う想定でセッションより緩くする
 export const IP_RULE: RateLimitRule = { limit: 60, windowMs: 60_000 };
 
+// 履歴取得・新しい会話のIPごとの上限。リロードや「新しい会話」の通常操作では届かない値にする
+export const AUX_IP_RULE: RateLimitRule = { limit: 30, windowMs: 60_000 };
+
 // インスタンス内メモリのスライディングウィンドウ。
 // Cloud Run で複数インスタンスになると上限はインスタンスごとになるが、コスト暴走の抑止には十分
 export class RateLimiter {

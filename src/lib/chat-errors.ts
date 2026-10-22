@@ -112,3 +112,18 @@ export function forbiddenInfo(): ChatErrorInfo {
     message: "このリクエストは受け付けられません。",
   };
 }
+
+// 頻度制限超過の 429 応答（Retry-After つき）。各 Route Handler で共通に使う
+export function tooManyRequestsResponse(
+  retryAfterSec: number,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  const info = tooManyRequestsInfo(retryAfterSec);
+  return Response.json(
+    { error: { code: info.code, message: info.message } },
+    {
+      status: info.status,
+      headers: { ...extraHeaders, "Retry-After": String(retryAfterSec) },
+    },
+  );
+}
